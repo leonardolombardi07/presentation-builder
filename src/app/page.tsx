@@ -1,95 +1,90 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+
+import styles from "./page.module.css";
+
+import Reveal from "reveal.js";
+import React from "react";
+
+// import Markdown from "reveal.js/plugin/markdown/markdown.esm.js";
 
 export default function Home() {
+  React.useLayoutEffect(() => {
+    Reveal.initialize();
+
+    let deck = new Reveal({
+      width: 400,
+    });
+    deck.initialize();
+  }, []);
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main>
+      <RevealMain>
+        <div className="slides">
+          <section data-background-color="aquamarine">
+            <h1>Hey</h1>
+          </section>
+          <section>Slide 2</section>
         </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      </RevealMain>
     </main>
-  )
+  );
+}
+
+import { useRef, useEffect, useCallback, useState } from "react";
+import { createContext } from "react";
+
+const RevealContext = createContext(null);
+
+let deck: any = false;
+
+function RevealMain({ children }: any) {
+  const revealRef = useRef(null);
+  const [ready, setReady] = useState(false);
+  const [initialIndices, setInitialIndices] = useState({});
+
+  const getDeck = useCallback(() => deck, []);
+  const isReady = useCallback(() => !!(ready && deck), [ready]);
+
+  const getInitialIndices = useCallback(() => {
+    return initialIndices;
+  }, [initialIndices]);
+
+  useEffect(() => {
+    if (!deck && revealRef.current) {
+      deck = new Reveal(revealRef.current);
+      deck
+        .initialize({
+          controls: false,
+          progress: true,
+          history: true,
+          center: true,
+          transition: "slide",
+        })
+        .then((e) => {
+          setInitialIndices({
+            currentSlide: e.currentSlide,
+            indexh: e.indexh,
+            indexv: e.indexv,
+          });
+          setReady(true);
+        });
+    }
+  }, []);
+
+  return (
+    <div
+      ref={revealRef}
+      className="reveal"
+      style={{
+        position: "relative",
+        height: "100vh",
+        minHeight: "100%",
+      }}
+    >
+      <RevealContext.Provider value={{ getDeck, isReady, getInitialIndices }}>
+        {children}
+      </RevealContext.Provider>
+    </div>
+  );
 }
